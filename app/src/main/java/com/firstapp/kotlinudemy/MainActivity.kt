@@ -1,88 +1,144 @@
 package com.firstapp.kotlinudemy
 
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import android.text.method.ScrollingMovementMethod
-import android.util.Log
-import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
 
-private const val TAG="MainActivity"
-private const val TEXT_CONTENTS="TextContents"
+import android.os.Bundle
+import android.text.TextUtils.replace
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.firstapp.kotlinudemy.api.Api
+import com.firstapp.kotlinudemy.api.PostApi
+import com.firstapp.kotlinudemy.fragments.AboutUs
+import com.firstapp.kotlinudemy.fragments.Help
+import com.firstapp.kotlinudemy.fragments.Settings
+import com.firstapp.kotlinudemy.model.Model
+import com.firstapp.kotlinudemy.util.Utility
+import com.firstapp.kotlinudemy.util.Utility.Companion.inTransaction
+import retrofit2.*
 
 
 class MainActivity : AppCompatActivity() {
 
-    var textView:TextView?=null
+    private val userList = ArrayList<Model>()
+    private lateinit var userAdapter: Adapter
+    private lateinit var retrofit: Retrofit
+    private val aboutUs= AboutUs(1)
+    private val help= Help(2)
+    private val settings= Settings(3)
 
 
-    private var numTimeCLicked=0
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d(TAG,"onCreate:called")
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.new_layout)
+        setContentView(R.layout.activity_main)
+        //Init your recyclerview
+        val recyclerView: RecyclerView = findViewById(R.id.recyclerView)
+        userAdapter = Adapter(userList)
+        val layoutManager = LinearLayoutManager(applicationContext)
+        recyclerView.layoutManager = layoutManager
+        recyclerView.itemAnimator = DefaultItemAnimator()
+        recyclerView.adapter = userAdapter
 
-        val userInput:EditText=findViewById<EditText>(R.id.userInput)
-        textView=findViewById<TextView>(R.id.textView)
-        val button=findViewById<Button>(R.id.button)
-        textView?.text=""
-        userInput.setText("Name")
-        textView?.movementMethod=ScrollingMovementMethod()
-        
-        button?.setOnClickListener(object : View.OnClickListener {
+        prepareMovieData()
+       }
 
-            override fun onClick(v: View?) {
-                Log.d(TAG,"onClicked:called")
-                textView?.append(userInput.text)
-                textView?.append("\n")
-                userInput.text.clear()
+    private fun prepareMovieData() {
 
+        retrofit= Api.getRetrofitClient()
+
+        val postApi: PostApi = retrofit.create(PostApi::class.java)
+
+
+        val call: Call<List<Model>>? = postApi.getUser()
+        call?.enqueue(object : Callback<List<Model>> {
+            override fun onResponse(call: Call<List<Model>>, response: Response<List<Model>>) {
+
+
+
+                if (response.isSuccessful) {
+                    Toast.makeText(this@MainActivity, "Success", Toast.LENGTH_LONG).show()
+                    for (i in response.body()!!.indices) {
+                        val userId: Int = response.body()?.get(i)!!.getUserId()
+                        val title: String = response.body()?.get(i)!!.getTitle()
+                        val body: String = response.body()?.get(i)!!.getBody()
+                        userList.add(Model(userId, title, body))
+                    }
+                    userAdapter.notifyDataSetChanged()
+
+
+                }
             }
+
+            override fun onFailure(call: Call<List<Model>>, t: Throwable) {
+                print(t.message)
+            }
+
 
         })
 
 
-
     }
 
-    override fun onStart() {
-        Log.d(TAG,"onStart:called")
-        super.onStart()
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+
+        menuInflater.inflate(R.menu.menu, menu);
+
+        return super.onCreateOptionsMenu(menu)
     }
 
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        Log.d(TAG,"onRestoreInstanceState:called")
-        super.onRestoreInstanceState(savedInstanceState)
-        val savedString=savedInstanceState?.getString(TEXT_CONTENTS,"")
-        textView?.text=savedString
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
-    }
+        when(item.itemId){
+            R.id.about ->{
+                //using extension function
+                Toast.makeText(this,"About Us",Toast.LENGTH_SHORT).show()
+                supportFragmentManager.inTransaction {
+                    replace(R.id.frame, aboutUs)
 
-    override fun onResume() {
-        Log.d(TAG,"onResume:called")
-        super.onResume()
-    }
 
-    override fun onPause() {
-        Log.d(TAG,"onPause:called")
-        super.onPause()
-    }
+            }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        Log.d(TAG,"onSaveInstanceState:called")
-        super.onSaveInstanceState(outState)
-      outState?.putString(TEXT_CONTENTS,textView?.text.toString())
-    }
+                }
 
-    override fun onStop() {
-        Log.d(TAG,"onStop:called")
-        super.onStop()
-    }
 
-    override fun onDestroy() {
-        Log.d(TAG,"onDestroy:called")
-        super.onDestroy()
-    }
+            R.id.help ->{
+                Toast.makeText(this,"Help Us",Toast.LENGTH_SHORT).show()
+                //using normal method call
+                Utility.showFragment(supportFragmentManager,help,R.id.frame)
+
+            }
+
+
+            R.id.setting -> {
+                Toast.makeText(this,"Settings",Toast.LENGTH_SHORT).show()
+                Utility.showFragment(supportFragmentManager,settings,R.id.frame)
+
+            }
+
+        }
+
+
+            return super.onOptionsItemSelected(item);
+
+        }
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
