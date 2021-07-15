@@ -13,7 +13,7 @@ class Utility  {
             transaction.replace(frameId, fragment!!)
             transaction.commit()
         }
-//creating extension function
+//creating inline and extension function
         inline fun FragmentManager.inTransaction(func: FragmentTransaction.() -> Unit) {
             val fragmentTransaction = beginTransaction()
             fragmentTransaction.func()

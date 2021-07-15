@@ -2,7 +2,7 @@ package com.firstapp.kotlinudemy
 
 
 import android.os.Bundle
-import android.text.TextUtils.replace
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -16,6 +16,7 @@ import com.firstapp.kotlinudemy.fragments.AboutUs
 import com.firstapp.kotlinudemy.fragments.Help
 import com.firstapp.kotlinudemy.fragments.Settings
 import com.firstapp.kotlinudemy.model.Model
+import com.firstapp.kotlinudemy.pref.SessionManager
 import com.firstapp.kotlinudemy.util.Utility
 import com.firstapp.kotlinudemy.util.Utility.Companion.inTransaction
 import retrofit2.*
@@ -31,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private val settings= Settings(3)
 
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -43,6 +45,13 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = userAdapter
 
         prepareMovieData()
+
+
+
+
+        SessionManager.putData("name", "Aquib khan")
+        var name: String? = SessionManager.getData("name")
+        Log.d("TAG", name!!)
        }
 
     private fun prepareMovieData() {
@@ -55,7 +64,6 @@ class MainActivity : AppCompatActivity() {
         val call: Call<List<Model>>? = postApi.getUser()
         call?.enqueue(object : Callback<List<Model>> {
             override fun onResponse(call: Call<List<Model>>, response: Response<List<Model>>) {
-
 
 
                 if (response.isSuccessful) {
@@ -92,29 +100,29 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
         when(item.itemId){
-            R.id.about ->{
+            R.id.about -> {
                 //using extension function
-                Toast.makeText(this,"About Us",Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "About Us", Toast.LENGTH_SHORT).show()
                 supportFragmentManager.inTransaction {
                     replace(R.id.frame, aboutUs)
 
 
-            }
-
                 }
 
+            }
 
-            R.id.help ->{
-                Toast.makeText(this,"Help Us",Toast.LENGTH_SHORT).show()
+
+            R.id.help -> {
+                Toast.makeText(this, "Help Us", Toast.LENGTH_SHORT).show()
                 //using normal method call
-                Utility.showFragment(supportFragmentManager,help,R.id.frame)
+                Utility.showFragment(supportFragmentManager, help, R.id.frame)
 
             }
 
 
             R.id.setting -> {
-                Toast.makeText(this,"Settings",Toast.LENGTH_SHORT).show()
-                Utility.showFragment(supportFragmentManager,settings,R.id.frame)
+                Toast.makeText(this, "Settings", Toast.LENGTH_SHORT).show()
+                Utility.showFragment(supportFragmentManager, settings, R.id.frame)
 
             }
 
@@ -128,7 +136,6 @@ class MainActivity : AppCompatActivity() {
 
 
 }
-
 
 
 
